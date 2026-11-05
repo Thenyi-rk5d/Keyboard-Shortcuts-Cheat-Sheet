@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快捷键全家桶 // TERMINAL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Courier New', 'Microsoft YaHei', monospace;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #33ff00;
+            padding: 20px;
+            line-height: 1.6;
+            text-shadow: 0 0 5px rgba(51, 255, 0, 0.3);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(51, 255, 0, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(51, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 终端窗口头 */
+        .terminal-header {
+            border: 1px solid #33ff00;
+            background-color: #111;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(51, 255, 0, 0.2);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        .dots { display: flex; gap: 6px; margin-right: 20px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background-color: #ff5f56; }
+        .dot.yellow { background-color: #ffbd2e; }
+        .dot.green { background-color: #27c93f; }
+        .terminal-header .title { color: #888; font-size: 14px; }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        .prompt {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .prompt span { color: #33ff00; }
+
+        /* 导航栏 */
+        .nav-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 30px;
+            padding: 10px;
+            background: #111;
+            border: 1px solid #222;
+            position: sticky;
+            top: 70px;
+            z-index: 99;
+            backdrop-filter: blur(4px);
+            background-color: rgba(17, 17, 17, 0.95);
+        }
+
+        .nav-btn {
+            background: #0a0a0a;
+            color: #00ffff;
+            border: 1px solid #333;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background: #1a1a1a;
+            border-color: #33ff00;
+            color: #33ff00;
+            box-shadow: 0 0 8px rgba(51, 255, 0, 0.3);
+        }
+
+        /* 分类区 */
+        .category {
+            margin-bottom: 40px;
+            scroll-margin-top: 140px;
+        }
+
+        .category-title {
+            color: #ffff00;
+            font-size: 17px;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px rgba(255, 255, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-title::before {
+            content: '>>';
+            color: #33ff00;
+            font-weight: bold;
+        }
+
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .shortcut-card {
+            background-color: #111;
+            border: 1px solid #222;
+            border-left: 3px solid #33ff00;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
+        }
+
+        .shortcut-card:hover {
+            background-color: #1a1a1a;
+            border-color: #33ff00;
+            box-shadow: 0 0 10px rgba(51, 255, 0, 0.15);
+            transform: translateX(4px);
+        }
+
+        .keys {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .desc {
+            color: #888;
+            font-size: 12px;
+            margin-left: 10px;
+            text-align: right;
+            flex-shrink: 0;
+            max-width: 55%;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #33ff00; border-radius: 0; }
+
+        /* 底部光标 */
+        .cursor-blink {
+            display: inline-block;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #555;
+            font-size: 12px;
+            border-top: 1px solid #1a1a1a;
+            padding-top: 20px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .nav-bar { top: 60px; }
+            .terminal-header { padding: 6px 10px; }
+            .shortcut-grid { grid-template-columns: 1fr; }
+            .desc { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 终端头 -->
+    <div class="terminal-header">
+        <div class="dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+        </div>
+        <div class="title">C:\Windows\System32\shortcuts_king.exe</div>
+    </div>
+
+    <h1>⌨️ 快捷键全家桶</h1>
+    <div class="prompt">user@win11:~$ <span>sudo ./shortcuts_all --verbose</span></div>
+
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+        <a href="#win11" class="nav-btn">Win11</a>
+        <a href="#adobe" class="nav-btn">Adobe 全家桶</a>
+        <a href="#blender" class="nav-btn">Blender</a>
+        <a href="#obsidian" class="nav-btn">Obsidian</a>
+        <a href="#flstudio" class="nav-btn">FL Studio</a>
+        <a href="#mcstudio" class="nav-btn">MC Studio</a>
+        <a href="#blockbench" class="nav-btn">Blockbench</a>
+        <a href="#bilibili" class="nav-btn">哔哩哔哩</a>
+        <a href="#douyin" class="nav-btn">抖音</a>
+        <a href="#common" class="nav-btn">通用/其他</a>
+    </div>
+
+    <!-- ========== Win11 ========== -->
+    <div class="category" id="win11">
+        <div class="category-title">[ Windows 11 系统与窗口 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Win + L</span><span class="desc">快速锁屏</span></div>
+            <div class="shortcut-card"><span class="keys">Win + D</span><span class="desc">显示/隐藏桌面</span></div>
+            <div class="shortcut-card"><span class="keys">Win + E</span><span class="desc">打开资源管理器</span></div>
+            <div class="shortcut-card"><span class="keys">Win + I</span><span class="desc">打开设置</span></div>
+            <div class="shortcut-card"><span class="keys">Win + Tab</span><span class="desc">任务视图/虚拟桌面</span></div>
+            <div class="shortcut-card"><span class="keys">Win + ← / →</span><span class="desc">窗口贴靠分屏</span></div>
+            <div class="shortcut-card"><span class="keys">Win + Ctrl + D</span><span class="desc">新建虚拟桌面</span></div>
+            <div class="shortcut-card"><span class="keys">Win + Ctrl + ← / →</span><span class="desc">切换虚拟桌面</span></div>
+            <div class="shortcut-card"><span class="keys">Alt + F4</span><span class="desc">关闭当前窗口</span></div>
+            <div class="shortcut-card"><span class="keys">Win + X</span><span class="desc">高级用户菜单</span></div>
+            <div class="shortcut-card"><span class="keys">Win + R</span><span class="desc">运行对话框</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + Esc</span><span class="desc">任务管理器</span></div>
+            <div class="shortcut-card"><span class="keys">Win + V</span><span class="desc">剪贴板历史</span></div>
+            <div class="shortcut-card"><span class="keys">Win + Shift + S</span><span class="desc">截图工具（局部）</span></div>
+            <div class="shortcut-card"><span class="keys">Win + .</span><span class="desc">Emoji 面板</span></div>
+            <div class="shortcut-card"><span class="keys">Win + PrtScn</span><span class="desc">全屏截图并保存</span></div>
+        </div>
+    </div>
+
+    <!-- ========== Adobe ========== -->
+    <div class="category" id="adobe">
+        <div class="category-title">[ Adobe 全家桶（PS / PR / AE 核心） ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Ctrl + N</span><span class="desc">PS/PR/AE 新建</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + S</span><span class="desc">保存</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Z</span><span class="desc">撤销（PS/AE/PR）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + Z</span><span class="desc">重做（PS/PR/AE）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + J</span><span class="desc">PS 复制图层</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + E</span><span class="desc">PS 合并图层 / PR 编辑原始</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + N</span><span class="desc">PS 新建图层 / AE 新建蒙版</span></div>
+            <div class="shortcut-card"><span class="keys">V / M / B / L</span><span class="desc">PS 移动/选框/画笔/套索</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + M</span><span class="desc">PR 导出媒体</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + R</span><span class="desc">PR 速度/持续时间</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + D</span><span class="desc">PR 应用默认视频过渡</span></div>
+            <div class="shortcut-card"><span class="keys">I / O</span><span class="desc">PR 标记入点/出点</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + D</span><span class="desc">PR 应用默认音频过渡</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Alt + N</span><span class="desc">AE 新建项目 / PR 新建项目</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + K</span><span class="desc">AE 合成设置</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + C</span><span class="desc">AE 预合成</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Y</span><span class="desc">AE 新建纯色层</span></div>
+            <div class="shortcut-card"><span class="keys">U</span><span class="desc">AE 显示所有关键帧</span></div>
+        </div>
+    </div>
+
+    <!-- ========== Blender ========== -->
+    <div class="category" id="blender">
+        <div class="category-title">[ Blender 建模与动画 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Tab</span><span class="desc">切换编辑模式</span></div>
+            <div class="shortcut-card"><span class="keys">G / R / S</span><span class="desc">移动 / 旋转 / 缩放</span></div>
+            <div class="shortcut-card"><span class="keys">X</span><span class="desc">删除（需确认）</span></div>
+            <div class="shortcut-card"><span class="keys">Shift + A</span><span class="desc">添加菜单</span></div>
+            <div class="shortcut-card"><span class="keys">F3</span><span class="desc">菜单搜索</span></div>
+            <div class="shortcut-card"><span class="keys">F9</span><span class="desc">调整上一步操作</span></div>
+            <div class="shortcut-card"><span class="keys">F12</span><span class="desc">渲染当前帧</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + S</span><span class="desc">保存</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Space</span><span class="desc">最大化区域切换</span></div>
+            <div class="shortcut-card"><span class="keys">A / Alt + A</span><span class="desc">全选 / 全不选</span></div>
+            <div class="shortcut-card"><span class="keys">H / Alt + H</span><span class="desc">隐藏 / 取消隐藏</span></div>
+            <div class="shortcut-card"><span class="keys">N</span><span class="desc">切换侧栏</span></div>
+            <div class="shortcut-card"><span class="keys">T</span><span class="desc">切换工具栏</span></div>
+            <div class="shortcut-card"><span class="keys">1 / 2 / 3</span><span class="desc">点/边/面 选择模式</span></div>
+        </div>
+    </div>
+
+    <!-- ========== Obsidian ========== -->
+    <div class="category" id="obsidian">
+        <div class="category-title">[ Obsidian 笔记与编辑 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Ctrl + N</span><span class="desc">新建笔记</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + O</span><span class="desc">快速切换（打开）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + P</span><span class="desc">命令面板</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + E</span><span class="desc">切换编辑/预览</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + F</span><span class="desc">全局搜索</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + B / I</span><span class="desc">加粗 / 斜体</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + K</span><span class="desc">插入链接</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + V</span><span class="desc">无格式粘贴</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + K</span><span class="desc">删除当前行</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Home / End</span><span class="desc">跳转笔记开头/结尾</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + 点击</span><span class="desc">在新面板打开链接</span></div>
+            <div class="shortcut-card"><span class="keys">Alt + ← / →</span><span class="desc">后退 / 前进</span></div>
+        </div>
+    </div>
+
+    <!-- ========== FL Studio ========== -->
+    <div class="category" id="flstudio">
+        <div class="category-title">[ FL Studio 编曲与混音 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Space</span><span class="desc">播放 / 停止</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Space</span><span class="desc">播放 / 暂停</span></div>
+            <div class="shortcut-card"><span class="keys">R</span><span class="desc">录音开关</span></div>
+            <div class="shortcut-card"><span class="keys">L</span><span class="desc">样式/歌曲模式切换</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + S</span><span class="desc">保存</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + S</span><span class="desc">另存为</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + R</span><span class="desc">导出 WAV</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + R</span><span class="desc">导出 MP3</span></div>
+            <div class="shortcut-card"><span class="keys">F5</span><span class="desc">播放列表</span></div>
+            <div class="shortcut-card"><span class="keys">F6</span><span class="desc">步进音序器</span></div>
+            <div class="shortcut-card"><span class="keys">F7</span><span class="desc">钢琴卷帘</span></div>
+            <div class="shortcut-card"><span class="keys">F8</span><span class="desc">插件选择器</span></div>
+            <div class="shortcut-card"><span class="keys">F9</span><span class="desc">混音器</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + T</span><span class="desc">切换钢琴键盘输入</span></div>
+            <div class="shortcut-card"><span class="keys">Alt + C</span><span class="desc">克隆选中通道</span></div>
+            <div class="shortcut-card"><span class="keys">Alt + Del</span><span class="desc">删除选中通道</span></div>
+        </div>
+    </div>
+
+    <!-- ========== MC Studio ========== -->
+    <div class="category" id="mcstudio">
+        <div class="category-title">[ MC Studio (网易我的世界开发) ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Alt + Tab</span><span class="desc">工作模式切换（默认）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Space</span><span class="desc">主动补全（命令方块）</span></div>
+            <div class="shortcut-card"><span class="keys">R (游戏内)</span><span class="desc">重载组件/世界（插件热键）</span></div>
+            <div class="shortcut-card"><span class="keys">小键盘 0</span><span class="desc">重载（备选热键）</span></div>
+            <div class="shortcut-card"><span class="keys">F5</span><span class="desc">调试/运行（IDE通用）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + F</span><span class="desc">全局搜索（IDE通用）</span></div>
+        </div>
+        <p style="color:#666; font-size:12px; margin-top:8px;">* MC Studio 基于 IDE，通用编辑快捷键（复制/粘贴/撤销）与系统一致。热键可在“控制 → 按键绑定”中修改 [citation:8][citation:19]。</p>
+    </div>
+
+    <!-- ========== Blockbench ========== -->
+    <div class="category" id="blockbench">
+        <div class="category-title">[ Blockbench 低模与 UV ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Q</span><span class="desc">选择工具</span></div>
+            <div class="shortcut-card"><span class="keys">W</span><span class="desc">移动工具</span></div>
+            <div class="shortcut-card"><span class="keys">E</span><span class="desc">旋转工具</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Z</span><span class="desc">撤销</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Y</span><span class="desc">重做</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + S</span><span class="desc">保存项目</span></div>
+        </div>
+        <p style="color:#666; font-size:12px; margin-top:8px;">* Blockbench 核心操作围绕 Q/W/E 工具切换，UV 编辑器内常用拖拽与框选 [citation:9]。</p>
+    </div>
+
+    <!-- ========== 哔哩哔哩 ========== -->
+    <div class="category" id="bilibili">
+        <div class="category-title">[ 哔哩哔哩网页端 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">空格</span><span class="desc">播放 / 暂停</span></div>
+            <div class="shortcut-card"><span class="keys">← / →</span><span class="desc">快退 / 快进</span></div>
+            <div class="shortcut-card"><span class="keys">↑ / ↓</span><span class="desc">音量调节</span></div>
+            <div class="shortcut-card"><span class="keys">F / Esc</span><span class="desc">全屏 / 退出全屏</span></div>
+            <div class="shortcut-card"><span class="keys">D</span><span class="desc">开关弹幕</span></div>
+            <div class="shortcut-card"><span class="keys">[ / ]</span><span class="desc">上一集 / 下一集</span></div>
+            <div class="shortcut-card"><span class="keys">Enter</span><span class="desc">输入弹幕</span></div>
+            <div class="shortcut-card"><span class="keys">M</span><span class="desc">静音</span></div>
+            <div class="shortcut-card"><span class="keys">+ / -</span><span class="desc">播放速度加/减</span></div>
+            <div class="shortcut-card"><span class="keys">0</span><span class="desc">恢复1.0倍速</span></div>
+            <div class="shortcut-card"><span class="keys">W</span><span class="desc">网页全屏</span></div>
+        </div>
+        <p style="color:#666; font-size:12px; margin-top:8px;">* B站播放器内置基础快捷键，部分扩展功能（如截图）需安装插件 [citation:10]。</p>
+    </div>
+
+    <!-- ========== 抖音 ========== -->
+    <div class="category" id="douyin">
+        <div class="category-title">[ 抖音网页端 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">空格</span><span class="desc">暂停 / 继续播放</span></div>
+            <div class="shortcut-card"><span class="keys">↑ / ↓</span><span class="desc">上一个 / 下一个视频</span></div>
+            <div class="shortcut-card"><span class="keys">← / →</span><span class="desc">快退 / 快进 5 秒</span></div>
+            <div class="shortcut-card"><span class="keys">Y</span><span class="desc">网页内全屏切换</span></div>
+            <div class="shortcut-card"><span class="keys">H</span><span class="desc">真全屏切换</span></div>
+            <div class="shortcut-card"><span class="keys">Shift + +</span><span class="desc">增大音量</span></div>
+            <div class="shortcut-card"><span class="keys">Shift + -</span><span class="desc">减小音量</span></div>
+            <div class="shortcut-card"><span class="keys">Shift + F</span><span class="desc">聚焦搜索框</span></div>
+            <div class="shortcut-card"><span class="keys">Shift + Q</span><span class="desc">关闭当前页面</span></div>
+        </div>
+        <p style="color:#666; font-size:12px; margin-top:8px;">* 抖音网页版快捷键相对基础，核心围绕视频切换与全屏 [citation:11]。</p>
+    </div>
+
+    <!-- ========== 通用/其他 ========== -->
+    <div class="category" id="common">
+        <div class="category-title">[ 通用与高频操作 ]</div>
+        <div class="shortcut-grid">
+            <div class="shortcut-card"><span class="keys">Ctrl + C / V / X</span><span class="desc">复制 / 粘贴 / 剪切</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Z / Y</span><span class="desc">撤销 / 重做（多数软件）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + A</span><span class="desc">全选</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + S</span><span class="desc">保存（通用）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + F</span><span class="desc">查找（通用）</span></div>
+            <div class="shortcut-card"><span class="keys">Ctrl + Shift + Esc</span><span class="desc">任务管理器（Windows）</span></div>
+            <div class="shortcut-card"><span class="keys">F2</span><span class="desc">重命名（资源管理器）</span></div>
+            <div class="shortcut-card"><span class="keys">Shift + Delete</span><span class="desc">永久删除</span></div>
+            <div class="shortcut-card"><span class="keys">Alt + Enter</span><span class="desc">查看属性</span></div>
+            <div class="shortcut-card"><span class="keys">Win + Shift + S</span><span class="desc">截图（全局）</span></div>
+        </div>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+        <p>user@win11:~$ <span style="color:#33ff00;">exit 0</span> <span class="cursor-blink">█</span></p>
+        <p style="margin-top:10px; color:#333;">// 快捷键基于默认设置，部分软件支持自定义 //</p>
+    </div>
+</div>
+
+</body>
+</html>
